@@ -4,8 +4,9 @@ v0.2 3/31/2026 - Added and finalized UART and HPS-166 libraries
 v0.3 4/1/2026 - Added sensor reset and button trigger
 v0.4 4/6/2026 - Changed to Single Range, added error handling for testing
 v0.5 4/8/2026 - Added SSD1306 OLED code for testing, works!!
-v0.6 4/9/2026 - Created buttonhandler library for buttons and laser
+v0.6 4/9/2026 - Created buttonhandler library for buttons and laser, cleaned up main.c
 Damon DeFaria 34305913  */
+
 #include <avr/io.h>
 #include <util/delay.h>
 #include <stdlib.h>
@@ -15,20 +16,6 @@ Damon DeFaria 34305913  */
 #include "HPS166.h"
 #include "SSD1306.h"
 #include "buttonhandler.h"
-
-#define RST_PIN PD2  // Reset pin for HPS-166 connected to PORTD2
-
-static const uint8_t CMD_SINGLE_RANGE[10] = {
-    0x0A, 0x22, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xAE, 0x57
-};
-
-static const uint8_t CMD_CONTINUOUS_RANGING[10] = {
-    0x0A, 0x24, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0F, 0x72
-};
-
-static const uint8_t CMD_STOP_RANGING[10] = {
-    0x0A, 0x30, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0xBC, 0x6F
-};
 
 
 void sensor_reset(void)
@@ -46,10 +33,7 @@ int main(void)
 {
     int state;
 
-    DDRD |= (1 << RST_PIN);
-    PORTD |= (1 << RST_PIN);
-
-    button_init();
+    pin_init();
     uart_init();
     OLED_Init();
     

@@ -6,7 +6,8 @@ Damon DeFaria 4/9/2026 */
 #include <avr/io.h>
 #include "buttonhandler.h"
 
-void button_init(void)
+// Initialize buttons, reset pin for sensor, and laser pin
+void pin_init(void)
 {
     // Trigger
     BUTTON_DDR &= ~(1 << TRIGGER_PIN);
@@ -19,6 +20,14 @@ void button_init(void)
     // Down
     BUTTON_DDR &= ~(1 << DWN_PIN);
     BUTTON_PORT |= (1 << DWN_PIN);
+
+    // Reset pin for HPS-166, PD5
+    DDRD |= (1 << RST_PIN);
+    PORTD |= (1 << RST_PIN);
+
+    // Laser, starts off
+    LASER_DDR |= (1 << LASER_PIN);
+    LASER_PORT &= ~(1 << LASER_PIN);
 }
 
 /*
@@ -54,13 +63,6 @@ int get_button_state(void)
         state = 0;
     }
     return state;
-}
-
-void laser_init(void)
-{
-    // Starts off
-    LASER_DDR |= (1 << LASER_PIN);
-    LASER_PORT &= ~(1 << LASER_PIN);
 }
 
 void laser_on(void)

@@ -20,13 +20,13 @@ Damon DeFaria 4/9/2026
 #define UP_PIN PD4 // Up Button connected to PORTD4
 #define TRIGGER_PIN PD5 // Trigger Button connected to PORTD5
 
+#define RST_PIN PD2  // Reset pin for HPS-166 connected to PORTD2
+
 #define LASER_PIN  PB1 // Laser connected to PORTB1
 
-void button_init(void);
+void pin_init(void);
 
 int get_button_state(void);
-
-void laser_init(void);
 
 void laser_on(void);
 

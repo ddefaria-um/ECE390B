@@ -12,6 +12,10 @@ Damon DeFaria 3/30/2026 */
 #define RANGING_FRAME_LEN   15   /* 0x0A + 0x0D(len) + 13 data bytes     */
 #define STOP_ACK_LEN         5   /* 0x0A + 0x03(len) + 3 data bytes      */
 
+extern const uint8_t CMD_SINGLE_RANGE[10];
+extern const uint8_t CMD_CONTINUOUS_RANGING[10];
+extern const uint8_t CMD_STOP_RANGING[10];
+
 bool receive_ranging_frame(uint16_t *distance_mm);
 
 bool sensor_stop_ranging(void);
