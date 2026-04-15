@@ -6,6 +6,7 @@ v0.4 4/6/2026 - Changed to Single Range, added error handling for testing
 v0.5 4/8/2026 - Added SSD1306 OLED code for testing, works!!
 v0.6 4/9/2026 - Created buttonhandler library for buttons and laser, cleaned up main.c
 v0.7 4/10/2026 - Mapped out menu states
+v0.8 4/15/2026 - Measuring code while in correct menu states, button debouncing, and OLED code for some of menu states, ready for testing
 Damon DeFaria 34305913  */
 
 #include <avr/io.h>
@@ -32,13 +33,9 @@ void sensor_reset(void)
 
 int main(void)
 {
-    int state;
-    int roomid;
-
-    // Initialize at main menu
-    state = 0;
-    
-    roomid = 0;
+    int state = 0;
+    int roomid = 0;
+    int trigstate = 0;
 
     pin_init();
     uart_init();
@@ -51,16 +48,26 @@ int main(void)
     _delay_ms(1000);
 
     uint16_t latest_dist_mm = 0;
-    uint16_t saved_dist_mm = 0;
+    uint16_t 1st_saved_dist_mm = 0;
+    uint16_t 2nd_saved_dist_mm = 0;
+    char buffer[16];
     
     while (1)
     {
         // Main Menu depending on button pressed
+        OLED_Clear();
         if (state == 0)
         {
+            OLED_GoToLine(2);
+            OLED_DisplayString(">Measure");
+            OLED_GoToLine(4);
+            OLED_DisplayString("View Rooms");
+            OLED_GoToLine(6);
+            OLED_DisplayString("Options");
             if (get_button_state() == 1)
             {
                 state = 3;
+                laser_on();
             }
             else if (get_button_state() == 3)
             {
@@ -70,6 +77,12 @@ int main(void)
         }
         else if (state == 1)
         {
+            OLED_GoToLine(2);
+            OLED_DisplayString("Measure");
+            OLED_GoToLine(4);
+            OLED_DisplayString(">View Rooms");
+            OLED_GoToLine(6);
+            OLED_DisplayString("Options");
             if (get_button_state() == 1)
             {
                 state = 20;
@@ -85,6 +98,12 @@ int main(void)
         }
         else if (state == 2)
         {
+            OLED_GoToLine(2);
+            OLED_DisplayString("Measure");
+            OLED_GoToLine(4);
+            OLED_DisplayString("View Rooms");
+            OLED_GoToLine(6);
+            OLED_DisplayString(">Options");
             if (get_button_state() == 1)
             {
                 state = 25;
@@ -97,17 +116,55 @@ int main(void)
         // First measurement
         else if (state == 3)
         {
-            // MAKE CODE FOR TRIGGER DEBOUNCE
-
+            OLED_GoToLine(2);
+            OLED_DisplayString("Hold and Release Trigger");
+            OLED_GoToLine(4);
+            OLED_DisplayString("Press Dwn to Cancel");
             // Pressing Dwn brings back to main menu
-            else if (get_button_state() == 3)
+            while (trigstate == 1)
+            {
+                if (!(BUTTON_PORT & (1 << TRIGGER_PIN)))
+                {
+                    trigstate = 0;
+                    state = 4;
+                    send_bytes(CMD_SINGLE_RANGE, 10);
+                    if (receive_ranging_frame(&latest_dist_mm))
+                    {
+                        1st_saved_dist_mm = latest_dist_mm;
+                    }
+                    else
+                    {
+                        // Handle error
+                        1st_saved_dist_mm = 9999;
+                    }
+                    laser_off();
+                }
+            }
+            
+            if (get_button_state() == 3)
             {
                 state = 0;
+                laser_off();
             }
+            else if (get_button_state() == 1)
+            {
+                trigstate = 1;
+            }
+
         }
         // Lock in measurement
         else if (state == 4)
         {
+            
+            snprintf(buffer, sizeof(buffer), "%lu", (unsigned long)saved_dist_mm);
+            OLED_GoToLine(0);
+            OLED_DisplayString("Dist: ");
+            OLED_GoToLine(2);
+            OLED_DisplayString(buffer);
+            OLED_GoToLine(4);
+            OLED_DisplayString(">Confirm");
+            OLED_GoToLine(6);
+            OLED_DisplayString("Retake");
             if (get_button_state() == 1)
             {
                 state = 6;
@@ -119,9 +176,20 @@ int main(void)
         }
         else if (state == 5)
         {
+            snprintf(buffer, sizeof(buffer), "%lu", (unsigned long)1st_saved_dist_mm);
+            OLED_GoToLine(0);
+            OLED_DisplayString("Dist: ");
+            OLED_GoToLine(2);
+            OLED_DisplayString(buffer);
+            OLED_GoToLine(4);
+            OLED_DisplayString("Confirm");
+            OLED_GoToLine(6);
+            OLED_DisplayString(">Retake");
             if (get_button_state() == 1)
             {
+                1st_saved_dist_mm = 0;
                 state = 3;
+                laser_on();
             }
             else if (get_button_state() == 2)
             {
@@ -131,9 +199,14 @@ int main(void)
         // Confirm 1st measurement, ask for 2nd
         else if (state == 6)
         {
+            OLED_GoToLine(4);
+            OLED_DisplayString(">Take 2nd Measure.");
+            OLED_GoToLine(6);
+            OLED_DisplayString("Cancel");
             if (get_button_state() == 1)
             {
                 state = 8;
+                laser_on();
             }
             else if (get_button_state() == 3)
             {
@@ -142,9 +215,14 @@ int main(void)
         }
         else if (state == 7)
         {
+            OLED_GoToLine(4);
+            OLED_DisplayString("Take 2nd Measure.");
+            OLED_GoToLine(6);
+            OLED_DisplayString(">Cancel");
             if (get_button_state() == 1)
             {
                 state = 0;
+                1st_saved_dist_mm = 0;
             }
             else if (get_button_state() == 2)
             {
@@ -154,17 +232,53 @@ int main(void)
         // Take 2nd measurement
         else if (state == 8)
         {
-            // MAKE CODE FOR TRIGGER DEBOUNCE
+            OLED_GoToLine(2);
+            OLED_DisplayString("Hold and Release Trigger");
+            OLED_GoToLine(4);
+            OLED_DisplayString("Press Dwn to Cancel");
+            while (trigstate == 1)
+            {
+                if (!(BUTTON_PORT & (1 << TRIGGER_PIN)))
+                {
+                    trigstate = 0;
+                    state = 9;
+                    send_bytes(CMD_SINGLE_RANGE, 10);
+                    if (receive_ranging_frame(&latest_dist_mm))
+                    {
+                        2nd_saved_dist_mm = latest_dist_mm;
+                    }
+                    else
+                    {
+                        // Handle error
+                        2nd_saved_dist_mm = 9999;
+                    }
+                    laser_off();
+                }
+            }
 
             // Pressing Dwn brings back to main menu
-            else if (get_button_state() == 3)
+            if (get_button_state() == 3)
             {
                 state = 0;
+                laser_off();
+            }
+            else if (get_button_state() == 1)
+            {
+                trigstate = 1;
             }
         }
         // Lock 2nd measurement
         else if (state == 9)
         {
+            snprintf(buffer, sizeof(buffer), "%lu", (unsigned long)2nd_saved_dist_mm);
+            OLED_GoToLine(0);
+            OLED_DisplayString("2nd Dist: ");
+            OLED_GoToLine(2);
+            OLED_DisplayString(buffer);
+            OLED_GoToLine(4);
+            OLED_DisplayString(">Confirm");
+            OLED_GoToLine(6);
+            OLED_DisplayString("Retake");
             if (get_button_state() == 1)
             {
                 state = 11;
@@ -176,8 +290,18 @@ int main(void)
         }
         else if (state == 10)
         {
+            snprintf(buffer, sizeof(buffer), "%lu", (unsigned long)2nd_saved_dist_mm);
+            OLED_GoToLine(0);
+            OLED_DisplayString("2nd Dist: ");
+            OLED_GoToLine(2);
+            OLED_DisplayString(buffer);
+            OLED_GoToLine(4);
+            OLED_DisplayString("Confirm");
+            OLED_GoToLine(6);
+            OLED_DisplayString(">Retake");
             if (get_button_state() == 1)
             {
+                laser_on();
                 state = 8;
             }
             else if (get_button_state() == 2)
@@ -390,6 +514,7 @@ int main(void)
             state = 0;
         }
 
+        /*
         // TESTING CODE
         OLED_Clear();
         OLED_GoToLine(4);
@@ -422,7 +547,9 @@ int main(void)
             OLED_DisplayString(buffer);
             _delay_ms(10000);
         }
-        _delay_ms(100);
+        */
+
+        _delay_ms(300);
 
     }
 
