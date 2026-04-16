@@ -64,6 +64,13 @@ int main(void)
             OLED_DisplayString("View Rooms");
             OLED_GoToLine(6);
             OLED_DisplayString("Options");
+            
+            // Turn laser off just in case of error
+            if (laser_is_on() == 1)
+            {
+                laser_off();
+            }
+
             if (get_button_state() == 1)
             {
                 state = 3;
@@ -353,7 +360,7 @@ int main(void)
             // MAKE CODE FOR TRIGGER DEBOUNCE
 
             // Pressing Dwn brings back to main menu
-            else if (get_button_state() == 3)
+            if (get_button_state() == 3)
             {
                 state = 0;
             }
