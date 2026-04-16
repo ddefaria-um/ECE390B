@@ -20,7 +20,7 @@ SOURCEFILE = main.c i2c.c SSD1306.c my_uart_lib.c HPS166.c buttonhandler.c
 # Don't change anything below unless you know what you're doing....
 CLOCKSPEED = 16000000UL	
 PROGRAMMER = arduino
-MCU = atmega328p
+MCU = usbtiny
 
 begin:	main.hex
 
