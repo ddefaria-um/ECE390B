@@ -48,8 +48,8 @@ int main(void)
     _delay_ms(1000);
 
     uint16_t latest_dist_mm = 0;
-    uint16_t 1st_saved_dist_mm = 0;
-    uint16_t 2nd_saved_dist_mm = 0;
+    uint16_t first_saved_dist_mm = 0;
+    uint16_t second_saved_dist_mm = 0;
     char buffer[16];
     
     while (1)
@@ -130,12 +130,12 @@ int main(void)
                     send_bytes(CMD_SINGLE_RANGE, 10);
                     if (receive_ranging_frame(&latest_dist_mm))
                     {
-                        1st_saved_dist_mm = latest_dist_mm;
+                        first_saved_dist_mm = latest_dist_mm;
                     }
                     else
                     {
                         // Handle error
-                        1st_saved_dist_mm = 9999;
+                        first_saved_dist_mm = 9999;
                     }
                     laser_off();
                 }
@@ -156,7 +156,7 @@ int main(void)
         else if (state == 4)
         {
             
-            snprintf(buffer, sizeof(buffer), "%lu", (unsigned long)saved_dist_mm);
+            snprintf(buffer, sizeof(buffer), "%lu", (unsigned long)first_saved_dist_mm);
             OLED_GoToLine(0);
             OLED_DisplayString("Dist: ");
             OLED_GoToLine(2);
@@ -176,7 +176,7 @@ int main(void)
         }
         else if (state == 5)
         {
-            snprintf(buffer, sizeof(buffer), "%lu", (unsigned long)1st_saved_dist_mm);
+            snprintf(buffer, sizeof(buffer), "%lu", (unsigned long)first_saved_dist_mm);
             OLED_GoToLine(0);
             OLED_DisplayString("Dist: ");
             OLED_GoToLine(2);
@@ -187,7 +187,7 @@ int main(void)
             OLED_DisplayString(">Retake");
             if (get_button_state() == 1)
             {
-                1st_saved_dist_mm = 0;
+                first_saved_dist_mm = 0;
                 state = 3;
                 laser_on();
             }
@@ -222,7 +222,7 @@ int main(void)
             if (get_button_state() == 1)
             {
                 state = 0;
-                1st_saved_dist_mm = 0;
+                first_saved_dist_mm = 0;
             }
             else if (get_button_state() == 2)
             {
@@ -245,12 +245,12 @@ int main(void)
                     send_bytes(CMD_SINGLE_RANGE, 10);
                     if (receive_ranging_frame(&latest_dist_mm))
                     {
-                        2nd_saved_dist_mm = latest_dist_mm;
+                        second_saved_dist_mm = latest_dist_mm;
                     }
                     else
                     {
                         // Handle error
-                        2nd_saved_dist_mm = 9999;
+                        second_saved_dist_mm = 9999;
                     }
                     laser_off();
                 }
@@ -270,7 +270,7 @@ int main(void)
         // Lock 2nd measurement
         else if (state == 9)
         {
-            snprintf(buffer, sizeof(buffer), "%lu", (unsigned long)2nd_saved_dist_mm);
+            snprintf(buffer, sizeof(buffer), "%lu", (unsigned long)second_saved_dist_mm);
             OLED_GoToLine(0);
             OLED_DisplayString("2nd Dist: ");
             OLED_GoToLine(2);
@@ -290,7 +290,7 @@ int main(void)
         }
         else if (state == 10)
         {
-            snprintf(buffer, sizeof(buffer), "%lu", (unsigned long)2nd_saved_dist_mm);
+            snprintf(buffer, sizeof(buffer), "%lu", (unsigned long)second_saved_dist_mm);
             OLED_GoToLine(0);
             OLED_DisplayString("2nd Dist: ");
             OLED_GoToLine(2);
