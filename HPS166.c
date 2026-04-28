@@ -26,24 +26,37 @@ bool receive_ranging_frame(uint16_t *distance_mm)
  
     // Read bytes until we find the start byte 0x0A
     while (true) {
-        if (!uart_getc_timeout(&buf[0])) return false;
+        if (!uart_getc_timeout(&buf[0])) {
+            *distance_mm = 9991; // ERROR 9991: Timeout waiting for sensor to talk
+            return false;
+        }
         if (buf[0] == 0x0A) break;
     }
  
     // Read the remaining 14 bytes
     for (idx = 1; idx < RANGING_FRAME_LEN; idx++) {
-        if (!uart_getc_timeout(&buf[idx])) return false;
+        if (!uart_getc_timeout(&buf[idx])) {
+            *distance_mm = 9992; // ERROR 9992: Timeout in the middle of receiving data
+            return false;
+        }
     }
  
     // Verify data-length byte == 0x0D (13)
-    if (buf[1] != 0x0D) return false;
+    if (buf[1] != 0x0D) {
+        *distance_mm = 9993; // ERROR 9993: Sensor sent bad data length
+        return false;
+    }
  
     // Decode distance: bytes 5 (MSB) and 6 (LSB), unit mm
-    *distance_mm = ((uint16_t)buf[5] << 8) | buf[6];
+    uint16_t dist = ((uint16_t)buf[5] << 8) | buf[6];
  
     // Check for over-range (65530 mm = 65.53 m)
-    if (*distance_mm >= 65530) return false;
+    if (dist >= 65530) {
+        *distance_mm = 9994; // ERROR 9994: Out of range / measurement failed
+        return false; 
+    }
  
+    *distance_mm = dist;
     return true;
 }
  

@@ -13,14 +13,15 @@
 # Specify the com port (windows) or USB port (macOS)
 # Use Device Manager to identify COM port number for Arduino Uno board in Windows
 # In Terminal, type ls /dev/tty.usb* to determine USB port number in macOS
-SERIALPORT = COM6
+SERIALPORT = COM12
+
 # Specify the name of your source code here:
 SOURCEFILE = main.c i2c.c SSD1306.c my_uart_lib.c HPS166.c buttonhandler.c
 #_____________________________________________________________________
 # Don't change anything below unless you know what you're doing....
 CLOCKSPEED = 16000000UL	
-PROGRAMMER = arduino
-MCU = usbtiny
+PROGRAMMER = usbtiny
+MCU = atmega328p
 
 begin:	main.hex
 

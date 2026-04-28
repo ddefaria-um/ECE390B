@@ -39,22 +39,21 @@ int get_button_state(void)
     int state;
     
     // Multiple buttons pressed
-    if (((!(BUTTON_PORT & (1 << TRIGGER_PIN))) && !(BUTTON_PORT & (1 << UP_PIN))) 
-        || (!(BUTTON_PORT & (1 << TRIGGER_PIN)) && !(BUTTON_PORT & (1 << DWN_PIN))) 
-        || (!(BUTTON_PORT & (1 << UP_PIN)) && !(BUTTON_PORT & (1 << DWN_PIN))))
+    if (((!(BUTTON_PIN & (1 << TRIGGER_PIN))) && !(BUTTON_PIN & (1 << UP_PIN))) 
+        || (!(BUTTON_PIN & (1 << TRIGGER_PIN)) && !(BUTTON_PIN & (1 << DWN_PIN))) 
+        || (!(BUTTON_PIN & (1 << UP_PIN)) && !(BUTTON_PIN & (1 << DWN_PIN))))
     {
         state = 0;
     }
-    
-    else if (!(BUTTON_PORT & (1 << TRIGGER_PIN))) 
+    else if (!(BUTTON_PIN & (1 << TRIGGER_PIN))) 
     {
         state = 1;
     } 
-    else if (!(BUTTON_PORT & (1 << UP_PIN))) 
+    else if (!(BUTTON_PIN & (1 << UP_PIN))) 
     {
         state = 2;
     } 
-    else if (!(BUTTON_PORT & (1 << DWN_PIN))) 
+    else if (!(BUTTON_PIN & (1 << DWN_PIN))) 
     {
         state = 3;
     } 

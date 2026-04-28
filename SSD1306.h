@@ -74,7 +74,7 @@ typedef enum
 /******************************************************************************
  SSD1306 ID and Command List
  ******************************************************************************/
-#define SSD1306_ADDRESS 0x3C
+#define SSD1306_ADDRESS 0x3D
 
 #define SSD1306_COMMAND 0x00
 #define SSD1306_DATA 0xC0
