@@ -1,4 +1,7 @@
-/* Main code for 390B Mapping Device Project */
+/* 
+main.c
+Main code for 390B Mapping Device Project 
+Damon DeFaria, Marzooq Jeje */
 
 #include <avr/io.h>
 #include <util/delay.h>
@@ -9,9 +12,10 @@
 #include "HPS166.h"
 #include "SSD1306.h"
 #include "buttonhandler.h"
+#include "roomdatahandler.h"
 
 // Define the new OLED reset pin (Connect Adafruit RST to PD0)
-#define OLED_RST_PIN PD0
+// #define OLED_RST_PIN PD0
 
 void sensor_reset(void)
 {
@@ -23,7 +27,7 @@ void sensor_reset(void)
     uart_flush_rx();             // Discard the init string
 }
 
-void oled_reset(void)
+/*void oled_reset(void)
 {
     DDRD  |=  (1 << OLED_RST_PIN); // RST as output
     PORTD &= ~(1 << OLED_RST_PIN); // Pull low to reset
@@ -31,21 +35,35 @@ void oled_reset(void)
     PORTD |=  (1 << OLED_RST_PIN); // Pull high to run
     _delay_ms(100);                // Wait for OLED to boot
 }
+*/
+
+const char* unit_label(uint8_t unit)
+{
+    switch (unit)
+    {
+        case UNIT_MM:   return "mm";
+        case UNIT_CM:   return "cm";
+        case UNIT_INCH: return "in";
+        case UNIT_FT:   return "ft";
+        case UNIT_M:    return "m";
+        default:        return "mm";
+    }
+}
 
 int main(void)
 {
     int state = 0;
-    int roomid = 0;
     int trigstate = 0;
-    int roomcount = 0;
-    int unit = 0; // 0 for mm, 1 for inches
+    
+    // 0 for mm, 1 for cm, 2 for in, 3 for ft, 4 for m
+    uint8_t unit = read_unit();
 
     pin_init();
     uart_init();
     
     // Kickstart both devices before trying to talk to them
     sensor_reset();
-    oled_reset();
+    //oled_reset();
     
     OLED_Init();
     
@@ -58,7 +76,14 @@ int main(void)
     uint16_t latest_dist_mm = 0;
     uint16_t first_saved_dist_mm = 0;
     uint16_t second_saved_dist_mm = 0;
+    uint16_t roomid = 1;
+    uint16_t roomcount = get_room_count();
     char buffer[16];
+    char roombuffer[32];
+    char dist1_str[10];
+    char dist2_str[10];
+    char m1_str[10];
+    char m2_str[10];
     
     while (1)
     {
@@ -100,6 +125,8 @@ int main(void)
             OLED_DisplayString("Options");
             if (get_button_state() == 1)
             {
+                roomcount = get_room_count();
+                unit = read_unit();
                 state = 20;
             }
             else if (get_button_state() == 2)
@@ -121,6 +148,7 @@ int main(void)
             OLED_DisplayString(">Options");
             if (get_button_state() == 1)
             {
+                unit = read_unit();
                 state = 25;
             }
             else if (get_button_state() == 2)
@@ -155,6 +183,8 @@ int main(void)
                         // Will grab the custom 999x error code from the function
                         first_saved_dist_mm = latest_dist_mm; 
                     }
+                    dtostrf(convert_distance(first_saved_dist_mm, unit), 1, 1, dist1_str);
+                    snprintf(buffer, sizeof(buffer), "%s %s", dist1_str, unit_label(unit));
                     laser_off();
                 }
             }
@@ -173,15 +203,12 @@ int main(void)
         // Lock in measurement
         else if (state == 4)
         {
-            
-            snprintf(buffer, sizeof(buffer), "%lu", (unsigned long)first_saved_dist_mm);
             OLED_GoToLine(0);
             OLED_DisplayString("Dist: ");
-            OLED_GoToLine(2);
             OLED_DisplayString(buffer);
-            OLED_GoToLine(4);
+            OLED_GoToLine(2);
             OLED_DisplayString(">Confirm");
-            OLED_GoToLine(6);
+            OLED_GoToLine(4);
             OLED_DisplayString("Retake");
             if (get_button_state() == 1)
             {
@@ -194,14 +221,12 @@ int main(void)
         }
         else if (state == 5)
         {
-            snprintf(buffer, sizeof(buffer), "%lu", (unsigned long)first_saved_dist_mm);
             OLED_GoToLine(0);
             OLED_DisplayString("Dist: ");
-            OLED_GoToLine(2);
             OLED_DisplayString(buffer);
-            OLED_GoToLine(4);
+            OLED_GoToLine(2);
             OLED_DisplayString("Confirm");
-            OLED_GoToLine(6);
+            OLED_GoToLine(4);
             OLED_DisplayString(">Retake");
             if (get_button_state() == 1)
             {
@@ -273,6 +298,8 @@ int main(void)
                         second_saved_dist_mm = latest_dist_mm;
                     }
                     laser_off();
+                    dtostrf(convert_distance(second_saved_dist_mm, unit), 1, 1, dist2_str);
+                    snprintf(buffer, sizeof(buffer), "%s %s", dist2_str, unit_label(unit));
                 }
             }
 
@@ -290,18 +317,17 @@ int main(void)
         // Lock 2nd measurement
         else if (state == 9)
         {
-            snprintf(buffer, sizeof(buffer), "%lu", (unsigned long)second_saved_dist_mm);
             OLED_GoToLine(0);
             OLED_DisplayString("2nd Dist: ");
-            OLED_GoToLine(2);
             OLED_DisplayString(buffer);
-            OLED_GoToLine(4);
+            OLED_GoToLine(2);
             OLED_DisplayString(">Confirm");
-            OLED_GoToLine(6);
+            OLED_GoToLine(4);
             OLED_DisplayString("Retake");
             if (get_button_state() == 1)
             {
                 state = 11;
+                snprintf(buffer, sizeof(buffer), "%sx%s %s", dist1_str, dist2_str, unit_label(unit));
             }
             else if (get_button_state() == 3)
             {
@@ -310,14 +336,12 @@ int main(void)
         }
         else if (state == 10)
         {
-            snprintf(buffer, sizeof(buffer), "%lu", (unsigned long)second_saved_dist_mm);
             OLED_GoToLine(0);
             OLED_DisplayString("2nd Dist: ");
-            OLED_GoToLine(2);
             OLED_DisplayString(buffer);
-            OLED_GoToLine(4);
+            OLED_GoToLine(2);
             OLED_DisplayString("Confirm");
-            OLED_GoToLine(6);
+            OLED_GoToLine(4);
             OLED_DisplayString(">Retake");
             if (get_button_state() == 1)
             {
@@ -333,8 +357,8 @@ int main(void)
         else if (state == 11)
         {
             OLED_GoToLine(0);
-            // edit this to show both distances
-            OLED_DisplayString("ROOM DISTANCE");
+            OLED_DisplayString("Room: ");
+            OLED_DisplayString(buffer);
             OLED_GoToLine(2);
             OLED_DisplayString(">Confirm Room");
             OLED_GoToLine(4);
@@ -344,6 +368,20 @@ int main(void)
             if (get_button_state() == 1)
             {
                 state = 0;
+                while (roomid < MAX_ROOMS && !room_is_empty(roomid))
+                {
+                    roomid++;
+                }
+                if (roomid < MAX_ROOMS)
+                {
+                    write_room(first_saved_dist_mm, second_saved_dist_mm, roomid);
+                    roomcount++;
+                    state = 0;
+                }
+                else
+                {
+                    state = 27; // No more room to save
+                }
             }
             else if (get_button_state() == 3)
             {
@@ -353,8 +391,8 @@ int main(void)
         else if (state == 12)
         {
             OLED_GoToLine(0);
-            // edit this to show both distances
-            OLED_DisplayString("ROOM DISTANCE");
+            OLED_DisplayString("Room: ");
+            OLED_DisplayString(buffer);
             OLED_GoToLine(2);
             OLED_DisplayString("Confirm Room");
             OLED_GoToLine(4);
@@ -368,7 +406,7 @@ int main(void)
             }
             else if (get_button_state() == 2)
             {
-                state = 12;
+                state = 11;
             }
             else if (get_button_state() == 3)
             {
@@ -378,8 +416,8 @@ int main(void)
         else if (state == 13)
         {
             OLED_GoToLine(0);
-            // edit this to show both distances
-            OLED_DisplayString("ROOM DISTANCE");
+            OLED_DisplayString("Room: ");
+            OLED_DisplayString(buffer);
             OLED_GoToLine(2);
             OLED_DisplayString("Confirm Room");
             OLED_GoToLine(4);
@@ -405,7 +443,7 @@ int main(void)
             // Pressing Dwn brings back to main menu
             while (trigstate == 1)
             {
-                if (!(BUTTON_PIN & (1 << TRIGGER_PIN)))
+                if (!(BUTTON_PIN & (1 << TRIGGER_PIN))) // FIXED: using BUTTON_PIN
                 {
                     trigstate = 0;
                     state = 15;
@@ -422,6 +460,8 @@ int main(void)
                         // Will grab the custom 999x error code from the function
                         first_saved_dist_mm = latest_dist_mm; 
                     }
+                    dtostrf(convert_distance(first_saved_dist_mm, unit), 1, 1, dist1_str);
+                    snprintf(buffer, sizeof(buffer), "%s %s", dist1_str, unit_label(unit));
                     laser_off();
                 }
             }
@@ -440,19 +480,18 @@ int main(void)
         // Lock retake
         else if (state == 15)
         {
-            snprintf(buffer, sizeof(buffer), "%lu", (unsigned long)first_saved_dist_mm);
             OLED_GoToLine(0);
             OLED_DisplayString("Dist: ");
-            OLED_GoToLine(2);
             OLED_DisplayString(buffer);
-            OLED_GoToLine(4);
+            OLED_GoToLine(2);
             OLED_DisplayString(">Confirm");
-            OLED_GoToLine(6);
+            OLED_GoToLine(4);
             OLED_DisplayString("Retake");
             
             if (get_button_state() == 1)
             {
                 state = 17;
+                snprintf(buffer, sizeof(buffer), "%sx%s %s", dist1_str, dist2_str, unit_label(unit));
             }
             else if (get_button_state() == 3)
             {
@@ -461,14 +500,12 @@ int main(void)
         }
         else if (state == 16)
         {
-            snprintf(buffer, sizeof(buffer), "%lu", (unsigned long)first_saved_dist_mm);
             OLED_GoToLine(0);
             OLED_DisplayString("Dist: ");
-            OLED_GoToLine(2);
             OLED_DisplayString(buffer);
-            OLED_GoToLine(4);
+            OLED_GoToLine(2);
             OLED_DisplayString("Confirm");
-            OLED_GoToLine(6);
+            OLED_GoToLine(4);
             OLED_DisplayString(">Retake");
 
             if (get_button_state() == 1)
@@ -486,8 +523,8 @@ int main(void)
         else if (state == 17)
         {
             OLED_GoToLine(0);
-            // edit this to show both distances
-            OLED_DisplayString("ROOM DISTANCE");
+            OLED_DisplayString("Room: ");
+            OLED_DisplayString(buffer);
             OLED_GoToLine(2);
             OLED_DisplayString(">Confirm Room");
             OLED_GoToLine(4);
@@ -498,6 +535,20 @@ int main(void)
             if (get_button_state() == 1)
             {
                 state = 0;
+                while (roomid < MAX_ROOMS && !room_is_empty(roomid))
+                {
+                    roomid++;
+                }
+                if (roomid < MAX_ROOMS)
+                {
+                    write_room(first_saved_dist_mm, second_saved_dist_mm, roomid);
+                    roomcount++;
+                    state = 0;
+                }
+                else
+                {
+                    state = 27; // No more room to save
+                }
             }
             else if (get_button_state() == 3)
             {
@@ -507,8 +558,8 @@ int main(void)
         else if (state == 18)
         {
             OLED_GoToLine(0);
-            // edit this to show both distances
-            OLED_DisplayString("ROOM DISTANCE");
+            OLED_DisplayString("Room: ");
+            OLED_DisplayString(buffer);
             OLED_GoToLine(2);
             OLED_DisplayString("Confirm Room");
             OLED_GoToLine(4);
@@ -533,8 +584,8 @@ int main(void)
         else if (state == 19)
         {
             OLED_GoToLine(0);
-            // edit this to show both distances
-            OLED_DisplayString("ROOM DISTANCE");
+            OLED_DisplayString("Room: ");
+            OLED_DisplayString(buffer);
             OLED_GoToLine(2);
             OLED_DisplayString("Confirm Room");
             OLED_GoToLine(4);
@@ -553,27 +604,32 @@ int main(void)
         // Saved room menu
         else if (state == 20)
         {
-            snprintf(buffer, sizeof(buffer), ">View Room %d", roomid);
+            snprintf(buffer, sizeof(buffer), ">Room %d/%d", roomid, roomcount);
             OLED_GoToLine(0);
             OLED_DisplayString(buffer);
             OLED_GoToLine(2);
-            OLED_DisplayString("Press Up to Scroll Rooms");
+            OLED_DisplayString("Up to Scroll Rooms");
             OLED_GoToLine(4);
-            OLED_DisplayString("Press Dwn to Main Menu");
+            OLED_DisplayString("Dwn to Main Menu");
             if (get_button_state() == 1)
             {
                 state = 21;
+                RoomData room = read_room(roomid);
+                dtostrf(convert_distance(room.m1, unit), 1, 1, m1_str);
+                dtostrf(convert_distance(room.m2, unit), 1, 1, m2_str);
+                snprintf(buffer, sizeof(buffer), "Room %d Dimensions", roomid);
+                snprintf(roombuffer, sizeof(roombuffer), "%sx%s %s", m1_str, m2_str, unit_label(unit));
             }
             else if (get_button_state() == 2)
             {
                 // Scroll through roomids
-                if (roomid < roomcount)
+                if (!room_is_empty(roomid + 1))
                 {
                     roomid = roomid + 1;
                 }
                 else
                 {
-                    roomid = 0;
+                    roomid = 1;
                 }
             }
             else if (get_button_state() == 3)
@@ -585,12 +641,10 @@ int main(void)
         else if (state == 21)
         {
             // Display dimensions of room n
-            snprintf(buffer, sizeof(buffer), "Room %d Dimensions", roomid);
             OLED_GoToLine(0);
             OLED_DisplayString(buffer);
             OLED_GoToLine(2);
-            // edit this
-            OLED_DisplayString("ROOM DIMENSIONS");
+            OLED_DisplayString(roombuffer);
             OLED_GoToLine(4);
             OLED_DisplayString(">Return");
             OLED_GoToLine(6);
@@ -607,12 +661,10 @@ int main(void)
         }
         else if (state == 22)
         {
-            snprintf(buffer, sizeof(buffer), "Room %d Dimensions", roomid);
             OLED_GoToLine(0);
             OLED_DisplayString(buffer);
             OLED_GoToLine(2);
-            // edit this
-            OLED_DisplayString("ROOM DIMENSIONS");
+            OLED_DisplayString(roombuffer);
             OLED_GoToLine(4);
             OLED_DisplayString("Return");
             OLED_GoToLine(6);
@@ -657,6 +709,10 @@ int main(void)
             if (get_button_state() == 1)
             {
                 state = 20;
+                delete_and_defragment(roomid);
+                roomcount = get_room_count();
+                roomid = 1;
+
             }
             else if (get_button_state() == 2)
             {
@@ -668,11 +724,23 @@ int main(void)
         {
             if (unit == 0)
             {
-                snprintf(buffer, sizeof(buffer), ">Change Display Unit (mm)");
+                snprintf(buffer, sizeof(buffer), ">Unit (mm)");
+            }
+            else if (unit == 1)
+            {
+                snprintf(buffer, sizeof(buffer), ">Unit (cm)");
+            }
+            else if (unit == 2)
+            {
+                snprintf(buffer, sizeof(buffer), ">Unit (in)");
+            }
+            else if (unit == 3)
+            {
+                snprintf(buffer, sizeof(buffer), ">Unit (ft)");
             }
             else
             {
-                snprintf(buffer, sizeof(buffer), ">Change Display Unit (in)");
+                snprintf(buffer, sizeof(buffer), ">Unit (m)");
             }
             OLED_GoToLine(0);
             OLED_DisplayString("Options");
@@ -682,14 +750,15 @@ int main(void)
             OLED_DisplayString("Return");
             if (get_button_state() == 1)
             {
-                if (unit == 0)
+                if (unit < UNIT_M)
                 {
-                    unit = 1;
+                    unit++;
                 }
                 else
                 {
                     unit = 0;
                 }
+                write_unit(unit);
             }
             else if (get_button_state() == 3)
             {
@@ -700,11 +769,23 @@ int main(void)
         {
             if (unit == 0)
             {
-                snprintf(buffer, sizeof(buffer), "Change Display Unit (mm)");
+                snprintf(buffer, sizeof(buffer), "Unit (mm)");
+            }
+            else if (unit == 1)
+            {
+                snprintf(buffer, sizeof(buffer), "Unit (cm)");
+            }
+            else if (unit == 2)
+            {
+                snprintf(buffer, sizeof(buffer), "Unit (in)");
+            }
+            else if (unit == 3)
+            {
+                snprintf(buffer, sizeof(buffer), "Unit (ft)");
             }
             else
             {
-                snprintf(buffer, sizeof(buffer), "Change Display Unit (in)");
+                snprintf(buffer, sizeof(buffer), "Unit (m)");
             }
             OLED_GoToLine(0);
             OLED_DisplayString("Options");
@@ -719,6 +800,20 @@ int main(void)
             else if (get_button_state() == 2)
             {
                 state = 25;
+            }
+        }
+        // ERROR NOT ENOUGH ROOM SPACE TO SAVE
+        else if (state == 27)
+        {
+            OLED_GoToLine(0);
+            OLED_DisplayString("ERROR");
+            OLED_GoToLine(2);
+            OLED_DisplayString("ROOM LIMIT REACHED");
+            OLED_GoToLine(4);
+            OLED_DisplayString(">Main Menu");
+            if (get_button_state() == 1)
+            {
+                state = 0;
             }
         }
         else

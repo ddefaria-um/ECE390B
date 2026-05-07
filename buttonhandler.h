@@ -13,8 +13,8 @@ Damon DeFaria 4/9/2026
 #define BUTTON_PORT PORTD
 #define BUTTON_PIN PIND
 
-#define LASER_DDR  DDRB
-#define LASER_PORT PORTB
+#define LASER_DDR  DDRD
+#define LASER_PORT PORTD
 
 #define DWN_PIN PD3 // Down Button connected to PORTD3
 #define UP_PIN PD4 // Up Button connected to PORTD4
@@ -22,7 +22,7 @@ Damon DeFaria 4/9/2026
 
 #define RST_PIN PD2  // Reset pin for HPS-166 connected to PORTD2
 
-#define LASER_PIN  PB1 // Laser connected to PORTB1
+#define LASER_PIN  PD6 // Laser connected to PORTB1
 
 void pin_init(void);
 
