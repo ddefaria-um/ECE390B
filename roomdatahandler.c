@@ -145,20 +145,20 @@ float convert_distance(uint16_t distance_mm, uint8_t unit)
 
 void write_offset(uint16_t offset)
 {
-    eeprom_update_byte(&stored_offset, offset);
+    eeprom_update_word(&stored_offset, offset);
 }
 
 uint16_t read_offset(void)
 {
-    if (eeprom_read_byte(&stored_offset) > 0xFF)
+    uint16_t offset = eeprom_read_word(&stored_offset);
+
+    if (offset == 0xFFFF)
     {
         write_offset(0);
         return 0;
     }
-    else
-    {
-        return eeprom_read_byte(&stored_offset);
-    }
+
+    return offset;
 }
 
 uint16_t convert_offset(uint16_t offset, uint8_t unit)
@@ -207,5 +207,5 @@ void factory_reset(void)
     }
 
     eeprom_update_byte(&stored_unit, UNIT_UNSET);
-    eeprom_update_byte(&stored_offset, 0);
+    eeprom_update_word(&stored_offset, 0);
 }
