@@ -197,4 +197,15 @@ void adjust_offset(uint8_t unit)
     write_offset(new_offset_value);
 }
 
+void factory_reset(void)
+{
+    uint16_t i;
 
+    for (i = 0; i < MAX_ROOMS; i++)
+    {
+        delete_room(i);
+    }
+
+    eeprom_update_byte(&stored_unit, UNIT_UNSET);
+    eeprom_update_byte(&stored_offset, 0);
+}

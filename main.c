@@ -53,7 +53,6 @@ int main(void)
     
     // Kickstart both devices before trying to talk to them
     sensor_reset();
-    //oled_reset();
     
     OLED_Init();
     
@@ -588,9 +587,9 @@ int main(void)
             OLED_GoToLine(0);
             OLED_DisplayString(buffer);
             OLED_GoToLine(2);
-            OLED_DisplayString("Up to Saved Rooms");
+            OLED_DisplayString("Up to SavedRooms");
             OLED_GoToLine(4);
-            OLED_DisplayString("Dwn to Main Menu");
+            OLED_DisplayString("Dwn to MainMenu");
             if (get_button_state() == 1)
             {
                 if (roomcount == 0)
@@ -739,7 +738,11 @@ int main(void)
             OLED_DisplayString(offsetbuffer);
             OLED_GoToLine(6);
             OLED_DisplayString("Return");
-            if (get_button_state() == 1)
+            if (get_button_state() == 4)
+            {
+                state = 50;
+            }
+            else if (get_button_state() == 1)
             {
                 if (unit < UNIT_M)
                 {
@@ -789,8 +792,8 @@ int main(void)
             OLED_DisplayString("Return");
             if (get_button_state() == 1)
             {
-                adjust_offset(unit);
-                offset = read_offset();
+                offset++;
+                write_offset(offset);
             }
             else if (get_button_state() == 2)
             {
@@ -841,6 +844,53 @@ int main(void)
                 state = 26;
             }
         }
+        // Factory Reset
+        else if (state == 50)
+        {
+            OLED_GoToLine(0);
+            OLED_DisplayString("Reset?");
+            OLED_GoToLine(2);
+            OLED_DisplayString(">No");
+            OLED_GoToLine(4);
+            OLED_DisplayString("Yes");
+            if (get_button_state() == 1)
+            {
+                state = 0;
+            }
+            else if (get_button_state() == 3)
+            {
+                state = 51;
+            }
+        }
+        else if (state == 51)
+        {
+            OLED_GoToLine(0);
+            OLED_DisplayString("Reset?");
+            OLED_GoToLine(2);
+            OLED_DisplayString("No");
+            OLED_GoToLine(4);
+            OLED_DisplayString(">Yes");
+            if (get_button_state() == 1)
+            {
+                state = 0;
+                factory_reset();
+                sensor_reset();
+                uart_flush_rx();
+                _delay_ms(1000);
+                roomcount = get_room_count();
+                offset = read_offset();
+                unit = read_unit();
+                latest_dist_mm = 0;
+                first_saved_dist_mm = 0;
+                second_saved_dist_mm = 0;
+                roomid = 1;
+            }
+            else if (get_button_state() == 2)
+            {
+                state = 50;
+            }
+        }
+        
         // ERROR NOT ENOUGH ROOM SPACE TO SAVE
         else if (state == 90)
         {
@@ -859,9 +909,9 @@ int main(void)
         else if (state == 91)
         {
             OLED_GoToLine(0);
-            OLED_DisplayString("ERROR");
+            OLED_DisplayString("ERROR NO");
             OLED_GoToLine(2);
-            OLED_DisplayString("NO SAVED ROOMS");
+            OLED_DisplayString("SAVED ROOMS");
             OLED_GoToLine(4);
             OLED_DisplayString(">Main Menu");
             if (get_button_state() == 1)

@@ -40,5 +40,6 @@ void write_offset(uint16_t offset);
 uint16_t read_offset(void);
 uint16_t convert_offset(uint16_t offset, uint8_t unit);
 void adjust_offset(uint8_t unit);
+void factory_reset(void);
 
 #endif

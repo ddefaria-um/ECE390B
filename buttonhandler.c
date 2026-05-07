@@ -32,14 +32,18 @@ void pin_init(void)
 
 /*
 Return an integer based on button pressed
-Trigger = 1, Up = 2, Down = 3, Multiple/None = 0
+Trigger = 1, Up = 2, Down = 3, Multiple = 0, All = 4
 */
 int get_button_state(void)
 {
     int state;
     
-    // Multiple buttons pressed
-    if (((!(BUTTON_PIN & (1 << TRIGGER_PIN))) && !(BUTTON_PIN & (1 << UP_PIN))) 
+    // All buttons pressed
+    if ((!(BUTTON_PIN & (1 << TRIGGER_PIN))) && (!(BUTTON_PIN & (1 << UP_PIN))) && (!(BUTTON_PIN & (1 << DWN_PIN))))
+    {
+        state = 4;
+    }
+    else if (((!(BUTTON_PIN & (1 << TRIGGER_PIN))) && !(BUTTON_PIN & (1 << UP_PIN))) 
         || (!(BUTTON_PIN & (1 << TRIGGER_PIN)) && !(BUTTON_PIN & (1 << DWN_PIN))) 
         || (!(BUTTON_PIN & (1 << UP_PIN)) && !(BUTTON_PIN & (1 << DWN_PIN))))
     {
