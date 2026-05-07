@@ -27,16 +27,6 @@ void sensor_reset(void)
     uart_flush_rx();             // Discard the init string
 }
 
-/*void oled_reset(void)
-{
-    DDRD  |=  (1 << OLED_RST_PIN); // RST as output
-    PORTD &= ~(1 << OLED_RST_PIN); // Pull low to reset
-    _delay_ms(10);
-    PORTD |=  (1 << OLED_RST_PIN); // Pull high to run
-    _delay_ms(100);                // Wait for OLED to boot
-}
-*/
-
 const char* unit_label(uint8_t unit)
 {
     switch (unit)
@@ -160,9 +150,9 @@ int main(void)
         else if (state == 3)
         {
             OLED_GoToLine(0);
-            OLED_DisplayString("Hold and Release Trigger");
+            OLED_DisplayString("Press Trigger");
             OLED_GoToLine(2);
-            OLED_DisplayString("Press Dwn to Cancel");
+            OLED_DisplayString("Dwn to Cancel");
             // Pressing Dwn brings back to main menu
             while (trigstate == 1)
             {
@@ -276,9 +266,9 @@ int main(void)
         else if (state == 8)
         {
             OLED_GoToLine(0);
-            OLED_DisplayString("Hold and Release Trigger");
+            OLED_DisplayString("Press Trigger");
             OLED_GoToLine(2);
-            OLED_DisplayString("Press Dwn to Cancel");
+            OLED_DisplayString("Dwn to Cancel");
             while (trigstate == 1)
             {
                 if (!(BUTTON_PIN & (1 << TRIGGER_PIN))) // FIXED: using BUTTON_PIN
@@ -437,9 +427,9 @@ int main(void)
         else if (state == 14)
         {
             OLED_GoToLine(0);
-            OLED_DisplayString("Hold and Release Trigger");
+            OLED_DisplayString("Press Trigger");
             OLED_GoToLine(2);
-            OLED_DisplayString("Press Dwn to Return");
+            OLED_DisplayString("Dwn to Return");
             // Pressing Dwn brings back to main menu
             while (trigstate == 1)
             {
@@ -808,7 +798,7 @@ int main(void)
             OLED_GoToLine(0);
             OLED_DisplayString("ERROR");
             OLED_GoToLine(2);
-            OLED_DisplayString("ROOM LIMIT REACHED");
+            OLED_DisplayString("NO SPACE");
             OLED_GoToLine(4);
             OLED_DisplayString(">Main Menu");
             if (get_button_state() == 1)

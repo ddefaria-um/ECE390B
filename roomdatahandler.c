@@ -109,33 +109,6 @@ uint16_t get_room_count(void)
     return count;
 }
 
-// Could be used for debugging
-uint16_t get_all_rooms(RoomData *out_rooms, uint16_t *out_ids, uint16_t max_count)
-{
-    uint16_t found = 0;
-    uint16_t i;
-
-    for (i = 0; i < MAX_ROOMS && found < max_count; i++)
-    {
-        RoomData temp;
-
-        eeprom_read_block(
-            (void*)&temp,
-            (const void*)&rooms[i],
-            sizeof(RoomData)
-        );
-
-        if (temp.m1 != 0xFFFF || temp.m2 != 0xFFFF)
-        {
-            out_rooms[found] = temp;
-            out_ids[found] = i;
-            found++;
-        }
-    }
-
-    return found;
-}
-
 void write_unit(uint8_t unit)
 {
     if (unit > UNIT_M) return;

@@ -33,7 +33,6 @@ void defragment_rooms(void);
 void delete_and_defragment(uint16_t room_id);
 uint8_t room_is_empty(uint16_t room_id);
 uint16_t get_room_count(void);
-uint16_t get_all_rooms(RoomData *out_rooms, uint16_t *out_ids, uint16_t max_count);
 void write_unit(uint8_t unit);
 uint8_t read_unit();
 float convert_distance(uint16_t distance_mm, uint8_t unit);
