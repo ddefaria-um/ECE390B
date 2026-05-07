@@ -70,6 +70,7 @@ int main(void)
     uint16_t roomcount = get_room_count();
     uint16_t offset = read_offset();
     char buffer[16];
+    char offsetbuffer[16];
     char roombuffer[32];
     char dist1_str[10];
     char dist2_str[10];
@@ -152,9 +153,9 @@ int main(void)
         else if (state == 3)
         {
             OLED_GoToLine(0);
-            OLED_DisplayString("Press Trigger");
+            OLED_DisplayString("Press Trig.");
             OLED_GoToLine(2);
-            OLED_DisplayString("Dwn to Cancel");
+            OLED_DisplayString("Dwn to CANX");
             // Pressing Dwn brings back to main menu
             while (trigstate == 1)
             {
@@ -196,7 +197,6 @@ int main(void)
         else if (state == 4)
         {
             OLED_GoToLine(0);
-            OLED_DisplayString("Dist: ");
             OLED_DisplayString(buffer);
             OLED_GoToLine(2);
             OLED_DisplayString(">Confirm");
@@ -214,7 +214,6 @@ int main(void)
         else if (state == 5)
         {
             OLED_GoToLine(0);
-            OLED_DisplayString("Dist: ");
             OLED_DisplayString(buffer);
             OLED_GoToLine(2);
             OLED_DisplayString("Confirm");
@@ -235,7 +234,7 @@ int main(void)
         else if (state == 6)
         {
             OLED_GoToLine(0);
-            OLED_DisplayString(">Take 2nd Measure.");
+            OLED_DisplayString(">Take 2nd");
             OLED_GoToLine(2);
             OLED_DisplayString("Cancel");
             if (get_button_state() == 1)
@@ -251,7 +250,7 @@ int main(void)
         else if (state == 7)
         {
             OLED_GoToLine(0);
-            OLED_DisplayString("Take 2nd Measure.");
+            OLED_DisplayString("Take 2nd");
             OLED_GoToLine(2);
             OLED_DisplayString(">Cancel");
             if (get_button_state() == 1)
@@ -268,9 +267,9 @@ int main(void)
         else if (state == 8)
         {
             OLED_GoToLine(0);
-            OLED_DisplayString("Press Trigger");
+            OLED_DisplayString("Press Trig.");
             OLED_GoToLine(2);
-            OLED_DisplayString("Dwn to Cancel");
+            OLED_DisplayString("Dwn to CANX");
             while (trigstate == 1)
             {
                 if (!(BUTTON_PIN & (1 << TRIGGER_PIN))) // FIXED: using BUTTON_PIN
@@ -310,7 +309,6 @@ int main(void)
         else if (state == 9)
         {
             OLED_GoToLine(0);
-            OLED_DisplayString("2nd Dist: ");
             OLED_DisplayString(buffer);
             OLED_GoToLine(2);
             OLED_DisplayString(">Confirm");
@@ -329,7 +327,6 @@ int main(void)
         else if (state == 10)
         {
             OLED_GoToLine(0);
-            OLED_DisplayString("2nd Dist: ");
             OLED_DisplayString(buffer);
             OLED_GoToLine(2);
             OLED_DisplayString("Confirm");
@@ -349,10 +346,9 @@ int main(void)
         else if (state == 11)
         {
             OLED_GoToLine(0);
-            OLED_DisplayString("Room: ");
             OLED_DisplayString(buffer);
             OLED_GoToLine(2);
-            OLED_DisplayString(">Confirm Room");
+            OLED_DisplayString(">Confirm Rm");
             OLED_GoToLine(4);
             OLED_DisplayString("Retake 1st");
             OLED_GoToLine(6);
@@ -383,10 +379,9 @@ int main(void)
         else if (state == 12)
         {
             OLED_GoToLine(0);
-            OLED_DisplayString("Room: ");
             OLED_DisplayString(buffer);
             OLED_GoToLine(2);
-            OLED_DisplayString("Confirm Room");
+            OLED_DisplayString("Confirm Rm");
             OLED_GoToLine(4);
             OLED_DisplayString(">Retake 1st");
             OLED_GoToLine(6);
@@ -408,10 +403,9 @@ int main(void)
         else if (state == 13)
         {
             OLED_GoToLine(0);
-            OLED_DisplayString("Room: ");
             OLED_DisplayString(buffer);
             OLED_GoToLine(2);
-            OLED_DisplayString("Confirm Room");
+            OLED_DisplayString("Confirm Rm");
             OLED_GoToLine(4);
             OLED_DisplayString("Retake 1st");
             OLED_GoToLine(6);
@@ -429,10 +423,9 @@ int main(void)
         else if (state == 14)
         {
             OLED_GoToLine(0);
-            OLED_DisplayString("Press Trigger");
+            OLED_DisplayString("Press Trig.");
             OLED_GoToLine(2);
-            OLED_DisplayString("Dwn to Return");
-            // Pressing Dwn brings back to main menu
+            OLED_DisplayString("Dwn to Ret.");
             while (trigstate == 1)
             {
                 if (!(BUTTON_PIN & (1 << TRIGGER_PIN))) // FIXED: using BUTTON_PIN
@@ -473,7 +466,6 @@ int main(void)
         else if (state == 15)
         {
             OLED_GoToLine(0);
-            OLED_DisplayString("Dist: ");
             OLED_DisplayString(buffer);
             OLED_GoToLine(2);
             OLED_DisplayString(">Confirm");
@@ -493,7 +485,6 @@ int main(void)
         else if (state == 16)
         {
             OLED_GoToLine(0);
-            OLED_DisplayString("Dist: ");
             OLED_DisplayString(buffer);
             OLED_GoToLine(2);
             OLED_DisplayString("Confirm");
@@ -515,10 +506,9 @@ int main(void)
         else if (state == 17)
         {
             OLED_GoToLine(0);
-            OLED_DisplayString("Room: ");
             OLED_DisplayString(buffer);
             OLED_GoToLine(2);
-            OLED_DisplayString(">Confirm Room");
+            OLED_DisplayString(">Confirm Rm");
             OLED_GoToLine(4);
             OLED_DisplayString("Retake 2nd");
             OLED_GoToLine(6);
@@ -550,10 +540,9 @@ int main(void)
         else if (state == 18)
         {
             OLED_GoToLine(0);
-            OLED_DisplayString("Room: ");
             OLED_DisplayString(buffer);
             OLED_GoToLine(2);
-            OLED_DisplayString("Confirm Room");
+            OLED_DisplayString("Confirm Rm");
             OLED_GoToLine(4);
             OLED_DisplayString(">Retake 2nd");
             OLED_GoToLine(6);
@@ -576,7 +565,6 @@ int main(void)
         else if (state == 19)
         {
             OLED_GoToLine(0);
-            OLED_DisplayString("Room: ");
             OLED_DisplayString(buffer);
             OLED_GoToLine(2);
             OLED_DisplayString("Confirm Room");
@@ -600,7 +588,7 @@ int main(void)
             OLED_GoToLine(0);
             OLED_DisplayString(buffer);
             OLED_GoToLine(2);
-            OLED_DisplayString("Up to Scroll Rooms");
+            OLED_DisplayString("Up to Saved Rooms");
             OLED_GoToLine(4);
             OLED_DisplayString("Dwn to Main Menu");
             if (get_button_state() == 1)
@@ -648,7 +636,7 @@ int main(void)
             OLED_GoToLine(4);
             OLED_DisplayString(">Return");
             OLED_GoToLine(6);
-            OLED_DisplayString("Delete Room");
+            OLED_DisplayString("Delete Rm");
 
             if (get_button_state() == 1)
             {
@@ -668,7 +656,7 @@ int main(void)
             OLED_GoToLine(4);
             OLED_DisplayString("Return");
             OLED_GoToLine(6);
-            OLED_DisplayString(">Delete Room");
+            OLED_DisplayString(">Delete Rm");
             if (get_button_state() == 1)
             {
                 state = 23;
@@ -683,7 +671,7 @@ int main(void)
         {
             // Deny delete
             OLED_GoToLine(0);
-            OLED_DisplayString("Delete Room?");
+            OLED_DisplayString("Delete Rm?");
             OLED_GoToLine(2);
             OLED_DisplayString(">No");
             OLED_GoToLine(4);
@@ -701,7 +689,7 @@ int main(void)
         {
             // Confirm delete
             OLED_GoToLine(0);
-            OLED_DisplayString("Delete Room?");
+            OLED_DisplayString("Delete Rm?");
             OLED_GoToLine(2);
             OLED_DisplayString("No");
             OLED_GoToLine(4);
@@ -747,8 +735,8 @@ int main(void)
             OLED_GoToLine(2);
             OLED_DisplayString(buffer);
             OLED_GoToLine(4);
-            snprintf(buffer, sizeof(buffer), "Offset: %d %s", convert_offset(offset, unit), unit_label(unit));
-            OLED_DisplayString(buffer);
+            snprintf(offsetbuffer, sizeof(offsetbuffer), "Offset: %d %s", convert_offset(offset, unit), unit_label(unit));
+            OLED_DisplayString(offsetbuffer);
             OLED_GoToLine(6);
             OLED_DisplayString("Return");
             if (get_button_state() == 1)
@@ -795,8 +783,8 @@ int main(void)
             OLED_GoToLine(2);
             OLED_DisplayString(buffer);
             OLED_GoToLine(4);
-            snprintf(buffer, sizeof(buffer), ">Offset: %d %s", convert_offset(offset, unit), unit_label(unit));
-            OLED_DisplayString(buffer);
+            snprintf(offsetbuffer, sizeof(offsetbuffer), ">Offset: %d %s", convert_offset(offset, unit), unit_label(unit));
+            OLED_DisplayString(offsetbuffer);
             OLED_GoToLine(6);
             OLED_DisplayString("Return");
             if (get_button_state() == 1)
@@ -840,8 +828,8 @@ int main(void)
             OLED_GoToLine(2);
             OLED_DisplayString(buffer);
             OLED_GoToLine(4);
-            snprintf(buffer, sizeof(buffer), "Offset: %d %s", convert_offset(offset, unit), unit_label(unit));
-            OLED_DisplayString(buffer);
+            snprintf(offsetbuffer, sizeof(offsetbuffer), "Offset: %d %s", convert_offset(offset, unit), unit_label(unit));
+            OLED_DisplayString(offsetbuffer);
             OLED_GoToLine(6);
             OLED_DisplayString(">Return");
             if (get_button_state() == 1)
