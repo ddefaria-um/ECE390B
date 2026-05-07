@@ -68,6 +68,7 @@ int main(void)
     uint16_t second_saved_dist_mm = 0;
     uint16_t roomid = 1;
     uint16_t roomcount = get_room_count();
+    uint16_t offset = read_offset();
     char buffer[16];
     char roombuffer[32];
     char dist1_str[10];
@@ -139,6 +140,7 @@ int main(void)
             if (get_button_state() == 1)
             {
                 unit = read_unit();
+                offset = read_offset();
                 state = 25;
             }
             else if (get_button_state() == 2)
@@ -166,7 +168,7 @@ int main(void)
                     
                     if (receive_ranging_frame(&latest_dist_mm))
                     {
-                        first_saved_dist_mm = latest_dist_mm;
+                        first_saved_dist_mm = latest_dist_mm - offset;
                     }
                     else
                     {
@@ -281,7 +283,7 @@ int main(void)
                     
                     if (receive_ranging_frame(&latest_dist_mm))
                     {
-                        second_saved_dist_mm = latest_dist_mm;
+                        second_saved_dist_mm = latest_dist_mm - offset;
                     }
                     else
                     {
@@ -370,7 +372,7 @@ int main(void)
                 }
                 else
                 {
-                    state = 27; // No more room to save
+                    state = 90; // No more room to save
                 }
             }
             else if (get_button_state() == 3)
@@ -443,7 +445,7 @@ int main(void)
                     
                     if (receive_ranging_frame(&latest_dist_mm))
                     {
-                        first_saved_dist_mm = latest_dist_mm;
+                        first_saved_dist_mm = latest_dist_mm - offset;
                     }
                     else
                     {
@@ -537,7 +539,7 @@ int main(void)
                 }
                 else
                 {
-                    state = 27; // No more room to save
+                    state = 90; // No more room to save
                 }
             }
             else if (get_button_state() == 3)
@@ -603,12 +605,20 @@ int main(void)
             OLED_DisplayString("Dwn to Main Menu");
             if (get_button_state() == 1)
             {
-                state = 21;
-                RoomData room = read_room(roomid);
-                dtostrf(convert_distance(room.m1, unit), 1, 1, m1_str);
-                dtostrf(convert_distance(room.m2, unit), 1, 1, m2_str);
-                snprintf(buffer, sizeof(buffer), "Room %d Dimensions", roomid);
-                snprintf(roombuffer, sizeof(roombuffer), "%sx%s %s", m1_str, m2_str, unit_label(unit));
+                if (roomcount == 0)
+                {
+                    // No rooms saved
+                    state = 91;
+                }
+                else
+                {
+                    state = 21;
+                    RoomData room = read_room(roomid);
+                    dtostrf(convert_distance(room.m1, unit), 1, 1, m1_str);
+                    dtostrf(convert_distance(room.m2, unit), 1, 1, m2_str);
+                    snprintf(buffer, sizeof(buffer), "Room %d Dim.", roomid);
+                    snprintf(roombuffer, sizeof(roombuffer), "%sx%s %s", m1_str, m2_str, unit_label(unit));
+                }
             }
             else if (get_button_state() == 2)
             {
@@ -700,7 +710,7 @@ int main(void)
             {
                 state = 20;
                 delete_and_defragment(roomid);
-                roomcount = get_room_count();
+                roomcount--;
                 roomid = 1;
 
             }
@@ -737,6 +747,9 @@ int main(void)
             OLED_GoToLine(2);
             OLED_DisplayString(buffer);
             OLED_GoToLine(4);
+            snprintf(buffer, sizeof(buffer), "Offset: %d %s", convert_offset(offset, unit), unit_label(unit));
+            OLED_DisplayString(buffer);
+            OLED_GoToLine(6);
             OLED_DisplayString("Return");
             if (get_button_state() == 1)
             {
@@ -782,6 +795,54 @@ int main(void)
             OLED_GoToLine(2);
             OLED_DisplayString(buffer);
             OLED_GoToLine(4);
+            snprintf(buffer, sizeof(buffer), ">Offset: %d %s", convert_offset(offset, unit), unit_label(unit));
+            OLED_DisplayString(buffer);
+            OLED_GoToLine(6);
+            OLED_DisplayString("Return");
+            if (get_button_state() == 1)
+            {
+                adjust_offset(unit);
+                offset = read_offset();
+            }
+            else if (get_button_state() == 2)
+            {
+                state = 25;
+            }
+            else if (get_button_state() == 3)
+            {
+                state = 27;
+            }
+        }
+        else if (state == 27)
+        {
+            if (unit == 0)
+            {
+                snprintf(buffer, sizeof(buffer), "Unit (mm)");
+            }
+            else if (unit == 1)
+            {
+                snprintf(buffer, sizeof(buffer), "Unit (cm)");
+            }
+            else if (unit == 2)
+            {
+                snprintf(buffer, sizeof(buffer), "Unit (in)");
+            }
+            else if (unit == 3)
+            {
+                snprintf(buffer, sizeof(buffer), "Unit (ft)");
+            }
+            else
+            {
+                snprintf(buffer, sizeof(buffer), "Unit (m)");
+            }
+            OLED_GoToLine(0);
+            OLED_DisplayString("Options");
+            OLED_GoToLine(2);
+            OLED_DisplayString(buffer);
+            OLED_GoToLine(4);
+            snprintf(buffer, sizeof(buffer), "Offset: %d %s", convert_offset(offset, unit), unit_label(unit));
+            OLED_DisplayString(buffer);
+            OLED_GoToLine(6);
             OLED_DisplayString(">Return");
             if (get_button_state() == 1)
             {
@@ -789,16 +850,30 @@ int main(void)
             }
             else if (get_button_state() == 2)
             {
-                state = 25;
+                state = 26;
             }
         }
         // ERROR NOT ENOUGH ROOM SPACE TO SAVE
-        else if (state == 27)
+        else if (state == 90)
         {
             OLED_GoToLine(0);
             OLED_DisplayString("ERROR");
             OLED_GoToLine(2);
             OLED_DisplayString("NO SPACE");
+            OLED_GoToLine(4);
+            OLED_DisplayString(">Main Menu");
+            if (get_button_state() == 1)
+            {
+                state = 0;
+            }
+        }
+        // ERROR NO ROOMS TO DISPLAY
+        else if (state == 91)
+        {
+            OLED_GoToLine(0);
+            OLED_DisplayString("ERROR");
+            OLED_GoToLine(2);
+            OLED_DisplayString("NO SAVED ROOMS");
             OLED_GoToLine(4);
             OLED_DisplayString(">Main Menu");
             if (get_button_state() == 1)

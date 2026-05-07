@@ -36,5 +36,9 @@ uint16_t get_room_count(void);
 void write_unit(uint8_t unit);
 uint8_t read_unit();
 float convert_distance(uint16_t distance_mm, uint8_t unit);
+void write_offset(uint16_t offset);
+uint16_t read_offset(void);
+uint16_t convert_offset(uint16_t offset, uint8_t unit);
+void adjust_offset(uint8_t unit);
 
 #endif

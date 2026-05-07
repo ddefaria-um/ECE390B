@@ -7,6 +7,7 @@ Damon DeFaria, Eric Bellavia 5/7/2026 */
 
 RoomData EEMEM rooms[MAX_ROOMS];
 uint8_t EEMEM stored_unit;
+uint16_t EEMEM stored_offset;
 
 void write_room(uint16_t m1, uint16_t m2, uint16_t room_id)
 {
@@ -141,3 +142,59 @@ float convert_distance(uint16_t distance_mm, uint8_t unit)
 
     return ((float)(int32_t)(result * 10.0f + 0.5f)) / 10.0f;
 }
+
+void write_offset(uint16_t offset)
+{
+    eeprom_update_byte(&stored_offset, offset);
+}
+
+uint16_t read_offset(void)
+{
+    if (eeprom_read_byte(&stored_offset) > 0xFF)
+    {
+        write_offset(0);
+        return 0;
+    }
+    else
+    {
+        return eeprom_read_byte(&stored_offset);
+    }
+}
+
+uint16_t convert_offset(uint16_t offset, uint8_t unit)
+{
+    float offset_mm;
+
+    switch (unit)
+    {
+        case UNIT_MM:   offset_mm = (float)offset;           break;
+        case UNIT_CM:   offset_mm = (float)offset * 10.0f;   break;
+        case UNIT_INCH: offset_mm = (float)offset * 25.4f;   break;
+        case UNIT_FT:   offset_mm = (float)offset * 304.8f;  break;
+        case UNIT_M:    offset_mm = (float)offset * 1000.0f; break;
+        default:        offset_mm = (float)offset;           break;
+    }
+
+    return (uint16_t)((int32_t)(offset_mm / 10.0f + 0.5f));
+}
+
+void adjust_offset(uint8_t unit)
+{
+    uint16_t current_offset = read_offset();
+    float new_offset;
+
+    switch (unit)
+    {
+        case UNIT_MM:   new_offset = (float)current_offset + 1.0f;     break;
+        case UNIT_CM:   new_offset = (float)current_offset + 10.0f;    break;
+        case UNIT_INCH: new_offset = (float)current_offset + 25.4f;    break;
+        case UNIT_FT:   new_offset = (float)current_offset + 304.8f;   break;
+        case UNIT_M:    new_offset = (float)current_offset + 1000.0f;  break;
+        default:        new_offset = (float)current_offset + 1.0f;     break;
+    }
+
+    uint16_t new_offset_value = (uint16_t)((int32_t)(new_offset / 10.0f + 0.5f));
+    write_offset(new_offset_value);
+}
+
+
