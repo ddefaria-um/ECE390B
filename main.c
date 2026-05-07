@@ -792,8 +792,8 @@ int main(void)
             OLED_DisplayString("Return");
             if (get_button_state() == 1)
             {
-                offset++;
-                write_offset(offset);
+                adjust_offset(unit);
+                offset = read_offset();
             }
             else if (get_button_state() == 2)
             {

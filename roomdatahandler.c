@@ -181,20 +181,19 @@ uint16_t convert_offset(uint16_t offset, uint8_t unit)
 void adjust_offset(uint8_t unit)
 {
     uint16_t current_offset = read_offset();
-    float new_offset;
+    uint16_t increment;
 
     switch (unit)
     {
-        case UNIT_MM:   new_offset = (float)current_offset + 1.0f;     break;
-        case UNIT_CM:   new_offset = (float)current_offset + 10.0f;    break;
-        case UNIT_INCH: new_offset = (float)current_offset + 25.4f;    break;
-        case UNIT_FT:   new_offset = (float)current_offset + 304.8f;   break;
-        case UNIT_M:    new_offset = (float)current_offset + 1000.0f;  break;
-        default:        new_offset = (float)current_offset + 1.0f;     break;
+        case UNIT_MM:   increment = 1;    break;
+        case UNIT_CM:   increment = 10;   break;
+        case UNIT_INCH: increment = 25;   break;
+        case UNIT_FT:   increment = 305;  break;
+        case UNIT_M:    increment = 1000; break;
+        default:        increment = 1;    break;
     }
 
-    uint16_t new_offset_value = (uint16_t)((int32_t)(new_offset / 10.0f + 0.5f));
-    write_offset(new_offset_value);
+    write_offset(current_offset + increment);
 }
 
 void factory_reset(void)
