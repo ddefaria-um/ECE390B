@@ -168,7 +168,7 @@ int main(void)
                     
                     if (receive_ranging_frame(&latest_dist_mm))
                     {
-                        first_saved_dist_mm = latest_dist_mm - offset;
+                        first_saved_dist_mm = latest_dist_mm;
                     }
                     else
                     {
@@ -281,7 +281,7 @@ int main(void)
                     
                     if (receive_ranging_frame(&latest_dist_mm))
                     {
-                        second_saved_dist_mm = latest_dist_mm - offset;
+                        second_saved_dist_mm = latest_dist_mm;
                     }
                     else
                     {
@@ -437,7 +437,7 @@ int main(void)
                     
                     if (receive_ranging_frame(&latest_dist_mm))
                     {
-                        first_saved_dist_mm = latest_dist_mm - offset;
+                        first_saved_dist_mm = latest_dist_mm;
                     }
                     else
                     {
@@ -734,7 +734,7 @@ int main(void)
             OLED_GoToLine(2);
             OLED_DisplayString(buffer);
             OLED_GoToLine(4);
-            snprintf(offsetbuffer, sizeof(offsetbuffer), "Offset: %d %s", convert_offset(offset, unit), unit_label(unit));
+            snprintf(offsetbuffer, sizeof(offsetbuffer), "Offset %d %s", convert_offset(offset, unit), unit_label(unit));
             OLED_DisplayString(offsetbuffer);
             OLED_GoToLine(6);
             OLED_DisplayString("Return");
@@ -786,14 +786,14 @@ int main(void)
             OLED_GoToLine(2);
             OLED_DisplayString(buffer);
             OLED_GoToLine(4);
-            snprintf(offsetbuffer, sizeof(offsetbuffer), ">Offset: %d %s", convert_offset(offset, unit), unit_label(unit));
+            snprintf(offsetbuffer, sizeof(offsetbuffer), ">Offset %d %s", convert_offset(offset, unit), unit_label(unit));
             OLED_DisplayString(offsetbuffer);
             OLED_GoToLine(6);
             OLED_DisplayString("Return");
             if (get_button_state() == 1)
             {
-                adjust_offset(unit);
-                offset = read_offset();
+                offset = 0;
+                write_offset(offset);
             }
             else if (get_button_state() == 2)
             {
@@ -831,7 +831,7 @@ int main(void)
             OLED_GoToLine(2);
             OLED_DisplayString(buffer);
             OLED_GoToLine(4);
-            snprintf(offsetbuffer, sizeof(offsetbuffer), "Offset: %d %s", convert_offset(offset, unit), unit_label(unit));
+            snprintf(offsetbuffer, sizeof(offsetbuffer), "Offset %d %s", convert_offset(offset, unit), unit_label(unit));
             OLED_DisplayString(offsetbuffer);
             OLED_GoToLine(6);
             OLED_DisplayString(">Return");
